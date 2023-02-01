@@ -55,6 +55,9 @@
                 // chargement du sprite du personnage
                 this.load.spritesheet('perso','assets/perso.png',
                 { frameWidth: 32, frameHeight: 52 });
+                // chargement de l'enemi
+                this.load.spritesheet('enemi','assets/enemis.png',
+                { frameWidth: 32, frameHeight: 52 });
                 
             }
             
@@ -86,17 +89,19 @@
                 "calque_plateformes",
                 tileset
                 );
-
+                // chargement du calque calque_echelle
                 const calque_echelle = carteDuNiveau.createLayer(
                 "calque_echelle",
                 tileset
                 ); 
 
 
-                //chargement du sprite
+                //chargement du sprite du personage
                 this.player = this.physics.add.sprite(10, 0, 'perso');
                 
-                
+                //chargement du sprite de l'enemi
+                this.enemi = this.physics.add.sprite(10, 45, 'enemis');
+
                 //permet la colision avec les bordures d'écran
                 this.player.setCollideWorldBounds(true);
                 this.physics.world.setBounds(0, 0, 1600, 1600);
@@ -107,9 +112,11 @@
                 calque_plateformes.setCollisionByProperty({ estSolide: true });  
                 
                 
-                // ajout d'une collision entre le joueur et le calque plateformes
+                // ajout d'une collision entre le joueur et l'enemi avec le calque plateformes
                 this.physics.add.collider(this.player, calque_plateformes);
-
+                this.physics.add.collider(this.enemi, calque_plateformes);
+                
+                // fonction de debug 
                 function debug_echelle(){
                     console.log("Est sur echelle");
 
@@ -130,7 +137,7 @@
                 this.cursors = this.input.keyboard.createCursorKeys();
                 this.clavier = this.input.keyboard.addKeys('Q,D,SPACE');
                 
-                // utilisation de la propiété estEchelle
+                // utilisation de la propiété estEchelle (abandonné)
                 //calque_plateformes.setCollisionByProperty({ estEchelle: true });
                 
                 // #region DEBUG
@@ -146,8 +153,18 @@
 
             }  
             
-            
-            
+            // declaration variable  et fonction pour wall jump
+            var wallJump = true;
+            var pDeplacementY = 210;
+            function blocageTouche () {
+                offTouche = false;
+            }
+            function cdWallJump () {
+                wallJump = true;
+            }
+             
+
+
             function update(){
                 // Comportement - Joueur
                 // Ici, c'est tout simplement le code pour gérer le déplacement de mon joueur
@@ -165,6 +182,30 @@
                 }
                 if (this.cursors.up.isDown && this.player.body.onFloor() || this.clavier.SPACE.isDown && this.player.body.onFloor()){
                     this.player.setVelocityY(-250);
+                }
+                // Creation  du Wall Jump 
+                if (this.cursors.up.isDown && this.player.body.blocked.right || this.clavier.SPACE.isDown && this.player.body.blocked.right) {
+                    if (wallJump == true) {
+                        wallJump = false;
+                        offTouche = true;
+                        setTimeout(cdWallJump, 500);
+                        setTimeout(blocageTouche, 200);
+                        this.player.setVelocityY(-pDeplacementY);
+                        this.player.setVelocityX(-50);
+                        
+                    }
+                }
+
+                if (this.cursors.up.isDown && this.player.body.blocked.left || this.clavier.SPACE.isDown && this.player.body.blocked.left) {
+                    if (wallJump == true) {
+                        wallJump = false;
+                        offTouche = true;
+                        setTimeout(cdWallJump, 500);
+                        setTimeout(blocageTouche, 200);
+                        this.player.setVelocityY(-pDeplacementY);
+                        this.player.setVelocityX(50);
+                        
+                    }
                 }
                 
 

@@ -193,7 +193,8 @@
  </tile>
  <tile id="300">
   <properties>
-   <property name="estSolide" type="bool" value="true"/>
+   <property name="estEchelle" type="bool" value="false"/>
+   <property name="estSolide" type="bool" value="false"/>
   </properties>
  </tile>
  <tile id="303">
