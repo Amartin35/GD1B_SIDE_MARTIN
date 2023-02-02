@@ -25,192 +25,291 @@
             width: 100vmin;
         }
     </style>
-
+    
     <script type="text/javascript">
         
         var config = {
-            type: Phaser.AUTO,
-            width: 320, height: 240,
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 300 },
-                    debug: true
-                }},
-                scene: {preload: preload, create: create, update: update },
-                antialias: false
-            };
+        type: Phaser.AUTO,
+        width: 320, height: 240,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 370 },
+                debug: false
+            }},
+            input: {
+                gamepad: true,
+            },
+            scene: {preload: preload, create: create, update: update },
+            antialias: false
+        };
+
+////////////////////////////////////////////////////// DECLARATION VARIABLE ET FONCTION ////////////////////////////////////////////////////
+
+        // déclaration variable pour le controleur
+        var gamepadConnected = false;
+        var gamepad;
+        var gamepadButtons; 
+        // declaration variable  et fonction pour wall jump
+        var wallJump = true;
+        var pDeplacementY = 210;
+        function blocageTouche () {
+            offTouche = false;
+        }
+        function cdWallJump () {
+            wallJump = true;
+        }
+        var tween_mouvement; 
+        
+        var game = new Phaser.Game(config);
+
+
+//////////////////////////////////////////////////// FONCTION PRELOAD ///////////////////////////////////////////////////////////////////////
+
+        function preload(){
+
             
-            new Phaser.Game(config);
+            // chargement tuiles de jeu
+            this.load.image("Phaser_tuilesdejeu", "assets/tuileJeu.png");
             
-            function preload(){
-                // chargement tuiles de jeu
-                this.load.image("Phaser_tuilesdejeu", "assets/tuileJeu.png");
-                
-                this.load.image("background", "assets/Background.png");
-                
-                // chargement de la carte
-                this.load.tilemapTiledJSON("carte", "assets/map.json"); 
-                
-                // chargement du sprite du personnage
-                this.load.spritesheet('perso','assets/perso.png',
-                { frameWidth: 32, frameHeight: 52 });
-                // chargement de l'enemi
-                this.load.spritesheet('enemi','assets/enemis.png',
-                { frameWidth: 32, frameHeight: 52 });
-                
-            }
+            // chargement background
+            this.load.image("background", "assets/Background.png");
             
+            // chargement de la carte
+            this.load.tilemapTiledJSON("carte", "assets/map.json"); 
             
-            function create(){
-
-                // chargement du background
-                this.add.image(800, 800, "background");
-                
-                // chargement de la carte
-                const carteDuNiveau = this.add.tilemap("carte");
-
-
-                // chargement du jeu de tuiles
-                const tileset = carteDuNiveau.addTilesetImage(
-                "tuiles_de_jeu",
-                "Phaser_tuilesdejeu"
-                ); 
-                
-                
-                // chargement du calque calque_background
-                const calque_background = carteDuNiveau.createLayer(
-                "calque_background",
-                tileset
-                );
-                
-                // chargement du calque calque_plateformes
-                const calque_plateformes = carteDuNiveau.createLayer(
-                "calque_plateformes",
-                tileset
-                );
-                // chargement du calque calque_echelle
-                const calque_echelle = carteDuNiveau.createLayer(
-                "calque_echelle",
-                tileset
-                ); 
-
-
-                //chargement du sprite du personage
-                this.player = this.physics.add.sprite(10, 0, 'perso');
-                
-                //chargement du sprite de l'enemi
-                this.enemi = this.physics.add.sprite(10, 45, 'enemis');
-
-                //permet la colision avec les bordures d'écran
-                this.player.setCollideWorldBounds(true);
-                this.physics.world.setBounds(0, 0, 1600, 1600);
-                
-                
-                // définition des tuiles de plateformes qui sont solides
-                // utilisation de la propriété estSolide
-                calque_plateformes.setCollisionByProperty({ estSolide: true });  
-                
-                
-                // ajout d'une collision entre le joueur et l'enemi avec le calque plateformes
-                this.physics.add.collider(this.player, calque_plateformes);
-                this.physics.add.collider(this.enemi, calque_plateformes);
-                
-                // fonction de debug 
-                function debug_echelle(){
-                    console.log("Est sur echelle");
-
-                }
-
-                
-                
-                //ajout d'une camera
-                this.cameras.main.setBounds(0, 0, 1600, 1600);
-                this.cameras.main.zoom = 1;
-                this.cameras.main.startFollow(this.player);
-                
-                // ancrage de la caméra sur le joueur
-                this.cameras.main.startFollow(this.player);  
-                
-                
-                // prise en charge des touches
-                this.cursors = this.input.keyboard.createCursorKeys();
-                this.clavier = this.input.keyboard.addKeys('Q,D,SPACE');
-                
-                // utilisation de la propiété estEchelle (abandonné)
-                //calque_plateformes.setCollisionByProperty({ estEchelle: true });
-                
-                // #region DEBUG
-                /*
-                const debugGraphics = this.add.graphics().setAlpha(0.75);
-                calque_plateformes.renderDebug(debugGraphics, {
-                    tileColor: null, // Color of non-colliding tiles
-                    collidingTileColor: new Phaser.Display.Color(255, 0, 0, 64), // Color of colliding tiles
-                    faceColor: new Phaser.Display.Color(255, 0, 0, 255) // Color of colliding face edges
-                });
-                */        
-                // #endregion
-
-            }  
+            // chargement du sprite du personnage
+            this.load.spritesheet('perso','assets/perso.png',
+            { frameWidth: 31, frameHeight: 52 });
+            // chargement de l'ennemi "spider"
+            this.load.spritesheet('spider','assets/spider.png',
+            { frameWidth: 16, frameHeight: 14 });
             
-            // declaration variable  et fonction pour wall jump
-            var wallJump = true;
-            var pDeplacementY = 210;
-            function blocageTouche () {
-                offTouche = false;
-            }
-            function cdWallJump () {
-                wallJump = true;
-            }
+        }
+        
+       
+        
+//////////////////////////////////////////////////// FONCTION CREATE ///////////////////////////////////////////////////////////////////////     
+        
+        function create(){
+        
+            
+            // chargement du background
+            this.add.image(800, 800, "background");
+            
+            // chargement de la carte
+            const carteDuNiveau = this.add.tilemap("carte");
              
+            // chargement du jeu de tuiles
+            const tileset = carteDuNiveau.addTilesetImage(
+            "tuiles_de_jeu",
+            "Phaser_tuilesdejeu"
+            ); 
+            
+            // chargement du calque calque_background
+            const calque_background = carteDuNiveau.createLayer(
+            "calque_background",
+            tileset
+            );
+            
+            // chargement du calque calque_plateformes
+            const calque_plateformes = carteDuNiveau.createLayer(
+            "calque_plateformes",
+            tileset
+            );
 
+            // chargement du calque calque_echelle
+            const calque_echelle = carteDuNiveau.createLayer(
+            "calque_echelle",
+            tileset
+            ); 
 
-            function update(){
-                // Comportement - Joueur
-                // Ici, c'est tout simplement le code pour gérer le déplacement de mon joueur
-                if (this.cursors.left.isDown || this.clavier.Q.isDown){ 
-                    this.player.setVelocityX(-160); 
-                    
-                }
-                else if (this.cursors.right.isDown || this.clavier.D.isDown){ 
-                    this.player.setVelocityX(160);
-                } 
+            // chargement du calque calque_pics
+            const calque_pics = carteDuNiveau.createLayer(
+            "calque_pics",
+            tileset
+            ); 
+            
+            //chargement du sprite du personage
+            this.player = this.physics.add.sprite(10, 0, 'perso');
+            
+            //chargement du sprite de l'ennemi
+            this.ennemi = this.physics.add.sprite(123, 90, 'spider');
+            
+            //permet la colision avec les bordures d'écran
+            this.player.setCollideWorldBounds(true);
+            this.physics.world.setBounds(0, 0, 1600, 1600);
+            
+            // définition des tuiles et de leurs proprieter
+            // utilisation de la propriété estSolide et estPointu
+            calque_plateformes.setCollisionByProperty({ estSolide: true });  
+            calque_pics.setCollisionByProperty({ estPointu: true });
+            
+            // ajout de la collision  entre le joueur et calque_plateformes
+            this.physics.add.collider(this.player, calque_plateformes);
+
+            // ajout de la collision entre calque_pics et le joueur + fonction pour kill le joueur et reload
+            this.collisionPics = this.physics.add.collider(this.player, calque_pics, () => {
+                console.log("touche pics");
+                this.collisionPics.active = false;
+                setTimeout(() => {
+                    location.reload();
+                }, 450);
+                this.physics.pause();
+                this.player.setTint(0xff0000);
+            });
+
+            //ajout de la collision entre l'ennemi et calque_platformes
+            this.physics.add.collider(this.ennemi, calque_plateformes);
+
+            this.physics.add.overlap(this.player, this.ennemi, () => {
+                console.log("touche ennemi")
+
+            });
+            // definition des parametre physique de l'ennemi
+            this.ennemi.body.allowGravity = false;
+            this.ennemi.body.immovable = true; 
+            
+            //ajout d'une camera
+            this.cameras.main.setBounds(0, 0, 1600, 1600);
+            this.cameras.main.zoom = 1;
+            this.cameras.main.startFollow(this.player);
+            
+            // ancrage de la caméra sur le joueur
+            this.cameras.main.startFollow(this.player);  
+            
+            
+            // prise en charge des touches clavier
+            this.cursors = this.input.keyboard.createCursorKeys();
+            this.clavier = this.input.keyboard.addKeys('Q,D,SPACE');
+          
+            // prise en charge d'un controleur
+            this.input.gamepad.on('connected', () => {
+                gamepad = this.input.gamepad.pad1;
+                console.log("Controller connected!");
                 
-                else{
-                    this.player.setVelocityX(0);
-                    
-                }
-                if (this.cursors.up.isDown && this.player.body.onFloor() || this.clavier.SPACE.isDown && this.player.body.onFloor()){
-                    this.player.setVelocityY(-250);
-                }
-                // Creation  du Wall Jump 
-                if (this.cursors.up.isDown && this.player.body.blocked.right || this.clavier.SPACE.isDown && this.player.body.blocked.right) {
-                    if (wallJump == true) {
-                        wallJump = false;
-                        offTouche = true;
-                        setTimeout(cdWallJump, 500);
-                        setTimeout(blocageTouche, 200);
-                        this.player.setVelocityY(-pDeplacementY);
-                        this.player.setVelocityX(-50);
-                        
-                    }
-                }
-
-                if (this.cursors.up.isDown && this.player.body.blocked.left || this.clavier.SPACE.isDown && this.player.body.blocked.left) {
-                    if (wallJump == true) {
-                        wallJump = false;
-                        offTouche = true;
-                        setTimeout(cdWallJump, 500);
-                        setTimeout(blocageTouche, 200);
-                        this.player.setVelocityY(-pDeplacementY);
-                        this.player.setVelocityX(50);
-                        
-                    }
-                }
+                gamepadButtons = {
+                    'left': gamepad.buttons[14],
+                    'right': gamepad.buttons[15],
+                    'jump': gamepad.buttons[0],
+                    'pause': gamepad.buttons[9]
+                };
                 
+                gamepadConnected = true;
+            });
+            
+            this.input.gamepad.on('disconnected', () => {
+                console.log("Controller disconnected!");
+                gamepadConnected = false;
+            });
+            
+            // création d'un tween pour faire bouger l'ennemi
+            tween_mouvement = this.tweens.add({
+                targets: [this.ennemi],  // on applique le tween sur l'ennemi
+                paused: false, // de base le tween est en pause
+                ease: "Linear",  // concerne la vitesse de mouvement : linéaire ici 
+                duration: 2000,  // durée de l'animation de deplacement
+                yoyo: true,   // mode yoyo : une fois terminé on "rembobine" le déplacement 
+                x: "-=90",   // on va déplacer la plateforme de 300 pixel vers le haut par rapport a sa position
+                delay: 0,     // délai avant le début du tween une fois ce dernier activé
+                hold: 1000,   // délai avant le yoyo : temps qeu al plate-forme reste en haut
+                repeatDelay: 1000, // deléi avant la répétition : temps que la plate-forme reste en bas
+                repeat: -1 // répétition infinie 
+            });
+            
+            // on met en place l'écouteur sur les bornes du monde
+            this.player.body.world.on(
+                "pic", // evenement surveillé
+                function (body, up, down, left, right) {
+                // on verifie si la hitbox qui est rentrée en collision est celle du player,
+                // et si la collision a eu lieu sur le bord inférieur du player
+                if (body.gameObject === this.player && down == true) {
+                    // si oui : GAME OVER on arrete la physique et on colorie le personnage en rouge
+                    this.physics.pause();
+                    this.player.setTint(0xff0000);
+                }
+                },
+                this
+            ); 
+           
+            // utilisation de la propiété estEchelle (abandonné)
 
+
+            //////////////// fonction de debug ////////////////////////
+            function debug_echelle(){
+                console.log("Est sur echelle");
+                
             }
+
+            //calque_plateformes.setCollisionByProperty({ estEchelle: true });
+            
+            // #region DEBUG
+            /*
+            const debugGraphics = this.add.graphics().setAlpha(0.75);
+            calque_plateformes.renderDebug(debugGraphics, {
+                tileColor: null, // Color of non-colliding tiles
+                collidingTileColor: new Phaser.Display.Color(255, 0, 0, 64), // Color of colliding tiles
+                faceColor: new Phaser.Display.Color(255, 0, 0, 255) // Color of colliding face edges
+            });
+            */        
+            // #endregion
+            
+        }  
+        
+        
+ //////////////////////////////////////////////////// FONCTION CREATE ///////////////////////////////////////////////////////////////////////     
+
+        
+        function update(){
+
+
+            // Comportement - Joueur
+            // Ici, c'est tout simplement le code pour gérer le déplacement de mon joueur
+            if (this.cursors.left.isDown || this.clavier.Q.isDown || gamepadButtons?.left.pressed){ 
+                this.player.setVelocityX(-160); 
                 
-            </script>
-        </body>
-        </html>
+            }
+            else if (this.cursors.right.isDown || this.clavier.D.isDown || gamepadButtons?.right.pressed){ 
+                this.player.setVelocityX(160);
+            } 
+            
+            else{
+                this.player.setVelocityX(0);
+                
+            }
+            if (this.cursors.up.isDown && this.player.body.onFloor() || this.clavier.SPACE.isDown && this.player.body.onFloor() || gamepadButtons?.jump.pressed && this.player.body.onFloor()){
+                this.player.setVelocityY(-250);
+            }
+
+
+            // Creation  du Wall Jump 
+            if (this.cursors.up.isDown && this.player.body.blocked.right || this.clavier.SPACE.isDown && this.player.body.blocked.right || gamepadButtons?.jump.pressed && this.player.body.blocked.right) {
+                if (wallJump == true) {
+                    wallJump = false;
+                    offTouche = true;
+                    setTimeout(cdWallJump, 500);
+                    setTimeout(blocageTouche, 200);
+                    this.player.setVelocityY(-pDeplacementY);
+                    this.player.setVelocityX(-50);
+                    
+                }
+            }
+            
+            if (this.cursors.up.isDown && this.player.body.blocked.left || this.clavier.SPACE.isDown && this.player.body.blocked.left || gamepadButtons?.jump.pressed && this.player.body.blocked.left) {
+                if (wallJump == true) {
+                    wallJump = false;
+                    offTouche = true;
+                    setTimeout(cdWallJump, 500);
+                    setTimeout(blocageTouche, 200);
+                    this.player.setVelocityY(-pDeplacementY);
+                    this.player.setVelocityX(50);
+                    
+                }
+            }
+            
+            
+        }
+            
+        </script>
+    </body>
+    </html>
