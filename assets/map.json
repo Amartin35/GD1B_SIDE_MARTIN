@@ -252,9 +252,44 @@
          "width":50,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":7,
+         "name":"calque_heart",
+         "objects":[
+                {
+                 "class":"",
+                 "gid":205,
+                 "height":32,
+                 "id":2,
+                 "name":"",
+                 "rotation":0,
+                 "visible":true,
+                 "width":32,
+                 "x":-2.26256,
+                 "y":706.993
+                }, 
+                {
+                 "class":"",
+                 "gid":205,
+                 "height":32,
+                 "id":6,
+                 "name":"",
+                 "rotation":0,
+                 "visible":true,
+                 "width":32,
+                 "x":768,
+                 "y":611.333
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":7,
- "nextobjectid":1,
+ "nextlayerid":8,
+ "nextobjectid":7,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.9.2",

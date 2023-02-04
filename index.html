@@ -41,7 +41,7 @@
                 gamepad: true,
             },
             scene: {preload: preload, create: create, update: update },
-            antialias: false
+            antialias: false,
         };
 
         ////////////////////////////////////////////////////// DECLARATION VARIABLE ET FONCTION ////////////////////////////////////////////////////
@@ -68,6 +68,10 @@
         
         var game = new Phaser.Game(config);
 
+        /* FAIS BUG
+        let calque_heart;
+        let heart;
+        */
 
         //////////////////////////////////////////////////// FONCTION PRELOAD ///////////////////////////////////////////////////////////////////////
 
@@ -91,6 +95,12 @@
             this.load.spritesheet('spider','assets/spider.png',
             { frameWidth: 16, frameHeight: 14 });
             
+            // chargement des barres de vies
+            this.load.image("hp_barre3", "assets/hp3.png");
+            this.load.image("hp_barre2", "assets/hp2.png");
+            this.load.image("hp_barre1", "assets/hp1.png");
+            this.load.image("hp_barre0", "assets/hp0.png");
+
         }
         
        
@@ -135,13 +145,41 @@
                 "calque_pics",
                 tileset
             ); 
+
+            // coeur recoltable NE MARCHE PAS FAIS BUG 
+           /*
+            calque_heart = map.getObjectLayer('calque_heart')['objects'];
+
+       
+            heart = this.physics.add.staticGroup()
+            calque_heart.forEach(object => {
+            let obj = heart.create(object.x, object.y, "heart"); 
+            obj.setScale(object.width/16, object.height/16); 
+            obj.setOrigin(0); 
+            obj.body.width = object.width; 
+            obj.body.height = object.height; 
+        
+
+            //collisons
+            map.setCollisionBetween(0, 923, true, 'calque_platformes');
+            player.setCollideWorldBounds(true);
+            this.physics.add.collider(player, calque_plateformes);
+            this.physics.add.overlap(player, heart, null, this);
+            });    
+            */
             
             // affichage du sprite du personage
             this.player = this.physics.add.sprite(10, 0, 'perso');
             
             // affichage du sprite de l'ennemi
             this.ennemi = this.physics.add.sprite(123, 90, 'spider');
-            
+
+            // afichage des barres de vies
+            let healthContainer0 = this.add.image(40, 15, "hp_barre0").setScrollFactor(0);
+            let healthContainer1 = this.add.image(40, 15, "hp_barre1").setScrollFactor(0);
+            let healthContainer2 = this.add.image(40, 15, "hp_barre2").setScrollFactor(0);
+            let healthContainer3 = this.add.image(40, 15, "hp_barre3").setScrollFactor(0);
+
             // permet la colision avec les bordures d'écran
             this.player.setCollideWorldBounds(true);
             this.physics.world.setBounds(0, 0, 1600, 1600);
@@ -167,13 +205,19 @@
                 this.player.setTint(0xff0000);
             });
 
-            // ajout de la collision entre l'ennemi et calque_platformes
+            // ajout de la collision entre l'ennemi et calque_platformes + degats si touche
             this.physics.add.collider(this.ennemi, calque_plateformes);
-
             this.physics.add.overlap(this.player, this.ennemi, () => {
-                console.log("touche ennemi")
+                console.log("touche ennemi");
+                this.player.setTint(0xff0000);
+                let healthContainer2 = this.add.image(40, 15, "hp_barre2").setScrollFactor(0);
+
+                setTimeout(() => {
+                    this.player.clearTint();
+                }, 300);
 
             });
+
 
             // definition des parametres physique de l'ennemi
             this.ennemi.body.allowGravity = false;
@@ -225,21 +269,7 @@
                 repeatDelay: 1000, // delai avant la repetition : temps que l'ennemi reste d'un cote
                 repeat: -1 // repetition infinie 
             });
-            
-            // on met en place l'ecouteur sur les bornes du monde
-            this.player.body.world.on(
-                "pic", // evenement surveiller
-                function (body, up, down, left, right) {
-                // on verifie si la hitbox qui est rentree en collision est celle du player,
-                // et si la collision a eu lieu sur le bord inferieur du player
-                if (body.gameObject === this.player && down == true) {
-                    // si oui : GAME OVER on arrete la physique et on colorie le personnage en rouge
-                    this.physics.pause();
-                    this.player.setTint(0xff0000);
-                }
-                },
-            ); 
-           
+        
             // utilisation de la propiété estEchelle (abandonné)
 
 
