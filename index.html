@@ -270,8 +270,6 @@
                 repeat: -1 // repetition infinie 
             });
         
-            // utilisation de la propiété estEchelle (abandonné)
-
 
             //////////////// fonction de debug ////////////////////////
             function debug_echelle(){
@@ -317,7 +315,6 @@
                 this.player.setVelocityY(-250);
             }
 
-
             // Creation  du Wall Jump 
             if (this.cursors.up.isDown && this.player.body.blocked.right || this.clavier.SPACE.isDown && this.player.body.blocked.right || gamepadButtons?.jump.pressed && this.player.body.blocked.right) {
                 if (wallJump == true) {
@@ -347,7 +344,18 @@
                     this.player.setVelocityX(50);
                     
                 }
-            }           
+            }    
+
+            // utilisation de la propiete estEchelle pour modifier la vitesse sur les echelles
+          /*  function toucheEstEchelle(this.player, estEchelle) {
+                this.player.setVelocityY(150);
+                setTimeout(function() {
+
+                    this.player.setVelocityY(250);
+                    
+                 }, 500);
+
+            } */            
         }
             
         </script>
